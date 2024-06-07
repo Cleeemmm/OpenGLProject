@@ -1,6 +1,9 @@
 #include "common/GLShader.h"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <iostream>
+#include <cmath>
+using namespace std;
 
 GLShader g_BasicShader;
 GLuint VBO;
@@ -34,6 +37,70 @@ unsigned int indices[] = {
     1,2,3
 };
 
+GLfloat* inverseMatrix(GLfloat* matrix1, int size, int length) {
+
+    GLfloat* result = new GLfloat[size] ;
+
+    /*
+    std::cout << "initial : " ;
+    for (int i  = 0 ; i < size ; i++) {
+        std::cout << matrix1[i] << " " ;
+    }
+    std::cout << std::endl;*/
+
+    int modulo = 0 ;
+    int indice = 0 ;
+    int i = 0 ;
+    while (indice < size){
+        if (i%length == modulo) {
+            result[indice] = matrix1[i];
+            indice++ ;
+        }
+        i++;
+        if(indice == length*(modulo+1)) {
+            modulo++;
+            i=0;
+        }
+    }
+
+    /*
+    std::cout << "final : ";
+    for (int i  = 0 ; i < size ; i++) {
+        std::cout << result[i] << " " ;
+    }
+    std::cout << std::endl;*/
+
+    return result;
+}
+
+
+GLfloat* multiplyMatrix(GLfloat* matrix1, GLfloat* matrix2) {
+
+    int size = sizeof(matrix1)/sizeof(GLfloat);
+    int length = sqrt(size);
+
+    GLfloat sum = 0 ;
+    GLfloat* result  = new GLfloat[size];
+    int indice = 0 ;
+    int m2value = 0 ;
+    for (int j = 0 ; j < size ; j++) {
+        for (int i = 0; i < length ; i++) {
+            sum += matrix2[m2value]*matrix1[i*length + j/length] ;
+            m2value++;
+            if (m2value >= size){
+                m2value = 0 ;
+            }
+        }
+        result[indice] = sum ;
+        sum = 0 ;
+        indice++ ;
+        if (indice >= size) {break;}
+    }   
+    result = inverseMatrix(result,size,length);
+    return result;
+}
+ 
+
 bool Initialise()
 {
 
@@ -56,6 +123,7 @@ bool Initialise()
         v3
     };
 */
+    multiplyMatrix();
 
     g_BasicShader.LoadVertexShader("basic.vs");
     g_BasicShader.LoadFragmentShader("basic.fs");
