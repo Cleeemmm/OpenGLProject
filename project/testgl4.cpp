@@ -216,8 +216,8 @@ bool Initialise()
         }
     }
 
-    g_BasicShader.LoadVertexShader("Basic.vs");
-    g_BasicShader.LoadFragmentShader("Basic.fs");
+    g_BasicShader.LoadVertexShader("Basic.vs.glsl");
+    g_BasicShader.LoadFragmentShader("Basic.fs.glsl");
     g_BasicShader.Create();
 
     auto basicProgram = g_BasicShader.GetProgram();
@@ -244,7 +244,7 @@ bool Initialise()
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(sizeof(float) * 6));
     sizeVertices = size * 3;
 
-    /*
+
     int loc_position = glGetAttribLocation(basicProgram, "a_position");
     glEnableVertexAttribArray(loc_position);
     glVertexAttribPointer(loc_position, 3, GL_FLOAT, false, sizeof(Vertex), 0);
@@ -256,7 +256,15 @@ bool Initialise()
     int normal = glGetAttribLocation(basicProgram, "a_normal");
     glEnableVertexAttribArray(normal);
     glVertexAttribPointer(normal, 3, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-    */
+
+    GLfloat L[3] = {0, 0, -1.0};
+    const int u_L = glGetUniformLocation(basicProgram, "u_L");
+    glUniform3fv(u_L, 1, L);
+
+    GLfloat Id[3] = {1.0, 1.0, 1.0};
+    const int u_Id = glGetUniformLocation(basicProgram, "u_Id");
+    glUniform3fv(u_Id, 1, Id);
+
     glGenBuffers(1, &IBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * 3, indices, GL_STATIC_DRAW);
