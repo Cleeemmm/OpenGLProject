@@ -19,10 +19,35 @@ GLuint VBOObject;
 
 int matriceViewLocation;
 int matriceProjectionLocation;
+int matriceWorldLocation;
 
 struct vec2 { float x, y; };
 struct vec3 { float x, y, z; };
-struct vec4 { float x, y, z, w; };
+struct vec4 {
+    float x, y, z, w;
+
+    float& operator[](int index) {
+        switch (index) {
+        case 0: return x;
+        case 1: return y;
+        case 2: return z;
+        case 3: return w;
+        default: throw std::out_of_range("Index out of range");
+        }
+    }
+
+    const float& operator[](int index) const {
+        switch (index) {
+        case 0: return x;
+        case 1: return y;
+        case 2: return z;
+        case 3: return w;
+        default: throw std::out_of_range("Index out of range");
+        }
+    }
+
+
+};
 
 struct Camera {
     vec3 position = { 0,0,0 };
@@ -36,6 +61,7 @@ struct Vertex {
     vec3 normal;
     vec2 texture;
 };
+
 
 /*
 struct std::vector<Vertex> vertices = {
@@ -52,11 +78,36 @@ static const unsigned short indices[] = {
 int sizeVertices;
 
 
-struct mat4 {
-    vec4 col1;
-    vec4 col2;
-    vec4 col3;
-    vec4 col4;
+struct mat4
+{
+    vec4 matrix[4];
+
+    vec4& operator[](int index) {
+        if (index < 0 || index >= 4)
+            throw std::out_of_range("Index out of range");
+        return matrix[index];
+    }
+
+    const vec4& operator[](int index) const {
+        if (index < 0 || index >= 4)
+            throw std::out_of_range("Index out of range");
+        return matrix[index];
+    }
+
+    mat4 operator*(const mat4& other) const {
+        mat4 result;
+
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                result[i][j] = 0;
+                for (int k = 0; k < 4; ++k) {
+                    result[i][j] += matrix[k][i] * other[j][k];
+                }
+            }
+        }
+
+        return result;
+    }
 };
 
 vec3 normalize(vec3 vector) {
@@ -86,9 +137,6 @@ float scalProduct(vec3 vector1, vec3 vector2) {
     return result;
 }
 
-GLfloat* mat4toFloat(mat4* matrix) {
-    return &matrix->col1.x;
-}
 
 void LookAt(vec3 position, vec3 target, vec3 up) {
     vec3 forward = { 0.0f, 0.0f, 0.0f };
@@ -102,88 +150,51 @@ void LookAt(vec3 position, vec3 target, vec3 up) {
 
     vec3 scalResults = { -scalProduct(position, right), -scalProduct(position, upCorrected), -scalProduct(position, forward) };
 
-    mat4 matriceView;
-    matriceView.col1 = { -forward.x, right.x, upCorrected.x, 0 };
-    matriceView.col2 = { -forward.y, right.y, upCorrected.y, 0 };
-    matriceView.col3 = { -forward.z, right.z, upCorrected.z, 0 };
-    matriceView.col4 = {scalResults.x, scalResults.y, scalResults.z, 1};
+    mat4 matriceView = { vec4{-forward.x, right.x, upCorrected.x, 0.0f} ,
+                        vec4{ -forward.y, right.y, upCorrected.y, 0.0f},
+                        vec4{-forward.z, right.z, upCorrected.z, 0.0f },
+                        vec4{scalResults.x, scalResults.y, scalResults.z, 1 }
+};
 
-    glUniformMatrix4fv(matriceViewLocation, 1, false, mat4toFloat(&matriceView));
+    glUniformMatrix4fv(matriceViewLocation, 1, false, (float*) & matriceView);
 }
 
-GLfloat* inverseMatrix(GLfloat* matrix1, int size, int length) {
-
-    GLfloat* result = new GLfloat[size];
-
-    /*
-    std::cout << "initial : " ;
-    for (int i  = 0 ; i < size ; i++) {
-        std::cout << matrix1[i] << " " ;
-    }
-    std::cout << std::endl;*/
-
-    int modulo = 0;
-    int indice = 0;
-    int i = 0;
-    while (indice < size) {
-        if (i % length == modulo) {
-            result[indice] = matrix1[i];
-            indice++;
-        }
-        i++;
-        if (indice == length * (modulo + 1)) {
-            modulo++;
-            i = 0;
-        }
-    }
-
-    /*
-    std::cout << "final : ";
-    for (int i  = 0 ; i < size ; i++) {
-        std::cout << result[i] << " " ;
-    }
-    std::cout << std::endl;*/
-
-    return result;
-}
 
 void projectionMatrix(GLfloat width, GLfloat height, GLfloat far, GLfloat near) {
-    mat4 matriceProjection;
+
     GLfloat aspect_ratio = width / height;
-    GLfloat fov = 2 * atan((height / 2) / near);
+    GLfloat fov = 3.14f / 4.0f;
 
-    matriceProjection.col1 = { 1/ (aspect_ratio * (float) tan(fov/2)) , 0, 0, 0};
-    matriceProjection.col2 = { 0, 1/ (float) tan(fov/2), 0, 0};
-    matriceProjection.col3 = { 0, 0, -(far + near)/(far - near), -1};
-    matriceProjection.col4 = { 0, 0, - (2 * far * near) / (far - near), 0};
+    mat4 matriceProjection = {
+                            vec4{(1.0f / tanf(fov / 2.0f)) / aspect_ratio , 0.0f, 0.0f, 0.0f },
+                            vec4{0.0f, 1 / tanf(fov / 2.0f), 0.0f, 0.0f},
+                            vec4{0.0f, 0.0f, -(far + near) / (far - near), -1.0f },
+                            vec4{0.0f, 0.0f, -(2.0f * far * near) / (far - near), 0.0f }
+                            };
 
-    glUniformMatrix4fv(matriceProjectionLocation, 1, false, mat4toFloat(&matriceProjection));
+    glUniformMatrix4fv(matriceProjectionLocation, 1, false, (float*) &matriceProjection);
 }
 
-GLfloat* multiplyMatrix(GLfloat* matrix1, GLfloat* matrix2) {
 
-    int size = sizeof(matrix1) / sizeof(GLfloat);
-    int length = sqrt(size);
+void worldMatrix() {
+    mat4 worldMatrix;
+    float time = (float)glfwGetTime();
 
-    GLfloat sum = 0;
-    GLfloat* result = new GLfloat[size];
-    int indice = 0;
-    int m2value = 0;
-    for (int j = 0; j < size; j++) {
-        for (int i = 0; i < length; i++) {
-            sum += matrix2[m2value] * matrix1[i * length + j / length];
-            m2value++;
-            if (m2value >= size) {
-                m2value = 0;
-            }
-        }
-        result[indice] = sum;
-        sum = 0;
-        indice++;
-        if (indice >= size) { break; }
-    }
-    result = inverseMatrix(result, size, length);
-    return result;
+    mat4 translate = { vec4{1.f, 0.f, 0.f, 0.f },
+                        vec4{0.f, 1.f, 0.f, 0.f },
+                        vec4{0.f, 0.f, 1.f, 0.f },
+                        vec4{0.f, 0.f, -5.f, 1.f }
+};
+
+    mat4 scale = { vec4{1.f, 0.f, 0.f, 0.f },
+                    vec4{0.f, 1.f, 0.f, 0.f },
+                    vec4{0.f, 0.f, 1.f, 0.f },
+                    vec4{0.f, 0.f, 0.0f, 1.f }
+};
+
+    worldMatrix = translate * scale;
+
+    glUniformMatrix4fv(matriceWorldLocation, 1, false, (float*) &worldMatrix);
 }
 
 bool Initialise()
@@ -281,6 +292,7 @@ bool Initialise()
 
     matriceViewLocation = glGetUniformLocation(basicProgram, "v_viewMatrix");
     matriceProjectionLocation = glGetUniformLocation(basicProgram, "v_projectionMatrix");
+    matriceWorldLocation = glGetUniformLocation(basicProgram, "v_worldMatrix");
 
     return true;
 }
@@ -298,8 +310,10 @@ void Render(int width, int height)
 {
     // etape a. A vous de recuperer/passer les variables width/height
     glViewport(0, 0, width, height);
-    LookAt({ 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 });
-    projectionMatrix(width, height, 10.0f,5.0f);
+    
+    LookAt({ 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, -1.0f }, { 0.0f, 1.0f, 0.0f });
+    projectionMatrix(640, 480, 500.0f, 0.1f);
+    worldMatrix();
 
     // etape b. Notez que glClearColor est un etat, donc persistant
     glClearColor(0.5f, 0.5f, 0.5f, 1.f);
