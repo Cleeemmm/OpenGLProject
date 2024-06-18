@@ -18,6 +18,7 @@ GLuint VAOObject;
 GLuint VBOObject;
 
 int matriceViewLocation;
+int matriceProjectionLocation;
 
 struct vec2 { float x, y; };
 struct vec3 { float x, y, z; };
@@ -146,6 +147,19 @@ GLfloat* inverseMatrix(GLfloat* matrix1, int size, int length) {
     return result;
 }
 
+void projectionMatrix(GLfloat width, GLfloat height, GLfloat far, GLfloat near) {
+    mat4 matriceProjection;
+    GLfloat aspect_ratio = width / height;
+    GLfloat fov = 2 * atan((height / 2) / near);
+
+    matriceProjection.col1 = { 1/ (aspect_ratio * (float) tan(fov/2)) , 0, 0, 0};
+    matriceProjection.col2 = { 0, 1/ (float) tan(fov/2), 0, 0};
+    matriceProjection.col3 = { 0, 0, -(far + near)/(far - near), -1};
+    matriceProjection.col4 = { 0, 0, - (2 * far * near) / (far - near), 0};
+
+    glUniformMatrix4fv(matriceProjectionLocation, 1, false, mat4toFloat(&matriceProjection));
+}
+
 GLfloat* multiplyMatrix(GLfloat* matrix1, GLfloat* matrix2) {
 
     int size = sizeof(matrix1) / sizeof(GLfloat);
@@ -266,6 +280,7 @@ bool Initialise()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     matriceViewLocation = glGetUniformLocation(basicProgram, "v_viewMatrix");
+    matriceProjectionLocation = glGetUniformLocation(basicProgram, "v_projectionMatrix");
 
     return true;
 }
@@ -284,6 +299,8 @@ void Render(int width, int height)
     // etape a. A vous de recuperer/passer les variables width/height
     glViewport(0, 0, width, height);
     LookAt({ 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 });
+    projectionMatrix(width, height, 10.0f,5.0f);
+
     // etape b. Notez que glClearColor est un etat, donc persistant
     glClearColor(0.5f, 0.5f, 0.5f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT);
