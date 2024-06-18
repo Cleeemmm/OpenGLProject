@@ -5,14 +5,23 @@
 #include <iostream>
 #include <cmath>
 
-#define STEP = 5 ;
+#define TINYOBJLOADER_IMPLEMENTATION
+#include "library/tinyobjloader-release/tiny_obj_loader.h"
+
+const int STEP = 5 ;
 
 GLShader g_BasicShader;
 GLuint VAO;
 GLuint VBO;
 GLuint IBO;
+GLuint VAOObject;
+GLuint VBOObject;
 
 int matriceViewLocation;
+
+struct vec2 { float x, y; };
+struct vec3 { float x, y, z; };
+struct vec4 { float x, y, z, w; };
 
 struct Camera {
     vec3 position = { 0,0,0 };
@@ -22,23 +31,25 @@ struct Camera {
 Camera camera;
 
 struct Vertex {
-    float position[2];
-    float color[3];
-    float normal[3];
+    vec3 position;
+    vec3 normal;
+    vec2 texture;
 };
 
-static const Vertex vertices[] = {
-    { { 0.0f, 0.5f },{1.f,0.f,0.f},{1.f,0.f,0.f}},
-    { { -0.5f, -0.5f },{1.f,0.f,0.f},{0.f,1.f,0.f}},
-    { { 0.5f, -0.5f },{1.f,0.f,0.f},{0.f,0.f,1.f}},
-};
+/*
+struct std::vector<Vertex> vertices = {
+    { { 0.0f, 0.5f,0.0f },{1.f,0.f},{1.f,0.f,0.f}},
+    { { -0.5f, -0.5f,0.0f },{1.f,0.f},{0.f,1.f,0.f}},
+    { { 0.5f, -0.5f,0.0f },{1.f,0.f},{0.f,0.f,1.f}},
+};*/
+
 
 static const unsigned short indices[] = {
     0, 1, 2
 };
 
-struct vec3 { float x, y, z; };
-struct vec4 { float x, y, z, w; };
+int sizeVertices;
+
 
 struct mat4 {
     vec4 col1;
@@ -162,7 +173,49 @@ GLfloat* multiplyMatrix(GLfloat* matrix1, GLfloat* matrix2) {
 }
 
 bool Initialise()
-{
+{   
+    //reading my object :
+    std::string modelPath = "./object/suzanne.obj";
+
+    tinyobj::attrib_t attributes;
+    std::vector<tinyobj::shape_t> shapes;
+    std::vector<tinyobj::material_t> materials;
+    std::string warnings;
+    std::string errors;
+    tinyobj::LoadObj(&attributes, &shapes, &materials, &warnings, &errors, modelPath.c_str());
+
+    std::vector<Vertex> vertices;
+
+    int size = 0;
+    for (int i = 0; i < shapes.size(); i++) {
+        tinyobj::shape_t& shape = shapes[i];
+        tinyobj::mesh_t& mesh = shape.mesh;
+        size += mesh.indices.size();
+        for (int j = 0; j < mesh.indices.size(); j++) {
+            tinyobj::index_t i = mesh.indices[j];
+            vec3 normal = { 0.0f, 0.0f, 0.0f };
+            vec2 texCoord = { 0.0f, 0.0f };
+            vec3 position = {
+                attributes.vertices[i.vertex_index * 3],
+                attributes.vertices[i.vertex_index * 3 + 1],
+                attributes.vertices[i.vertex_index * 3 + 2]
+            };
+            if (i.normal_index >= 0)
+                normal = {
+                    attributes.normals[i.normal_index * 3],
+                    attributes.normals[i.normal_index * 3 + 1],
+                    attributes.normals[i.normal_index * 3 + 2]
+            };
+            if (i.texcoord_index >= 0)
+                texCoord = {
+                    attributes.texcoords[i.texcoord_index * 2],
+                    attributes.texcoords[i.texcoord_index * 2 + 1],
+            };
+            Vertex vert = { position, normal, texCoord };
+            vertices.push_back(vert);
+        }
+    }
+
     g_BasicShader.LoadVertexShader("Basic.vs");
     g_BasicShader.LoadFragmentShader("Basic.fs");
     g_BasicShader.Create();
@@ -170,21 +223,40 @@ bool Initialise()
     auto basicProgram = g_BasicShader.GetProgram();
     glUseProgram(basicProgram);
 
+    /*
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * 3, vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices.size(), &vertices, GL_STATIC_DRAW);
+    */
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices.size(), &vertices[0], GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, nullptr);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(sizeof(float) * 3));
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(sizeof(float) * 6));
+    sizeVertices = size * 3;
 
+    /*
     int loc_position = glGetAttribLocation(basicProgram, "a_position");
     glEnableVertexAttribArray(loc_position);
-    glVertexAttribPointer(loc_position, 2, GL_FLOAT, false, sizeof(Vertex), 0);
+    glVertexAttribPointer(loc_position, 3, GL_FLOAT, false, sizeof(Vertex), 0);
 
     int color = glGetAttribLocation(basicProgram, "a_color");
     glEnableVertexAttribArray(color);
     glVertexAttribPointer(color, 3, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, color));
 
+    int normal = glGetAttribLocation(basicProgram, "a_normal");
+    glEnableVertexAttribArray(normal);
+    glVertexAttribPointer(normal, 3, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+    */
     glGenBuffers(1, &IBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * 3, indices, GL_STATIC_DRAW);
@@ -217,9 +289,10 @@ void Render(int width, int height)
     glClear(GL_COLOR_BUFFER_BIT);
 
     glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(indices[0]), GL_UNSIGNED_SHORT, NULL);
+    glDrawArrays(GL_TRIANGLES, 0, sizeVertices);
+    //glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(indices[0]), GL_UNSIGNED_SHORT, NULL);
 }
-
+ 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
         std::cout << "right" << std::endl;

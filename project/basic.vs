@@ -1,9 +1,10 @@
-attribute vec2 a_position;
-attribute vec3 a_color;
+attribute vec3 a_position;
+attribute vec3 a_normal;
+attribute vec2 a_texture;
 varying vec4 v_color;
 varying mat4 v_viewMatrix;
 
 void main(void) {
-    gl_Position = vec4(a_position, 0.0, 1.0);
-    v_color = vec4(a_color, 1.0);
+    gl_Position = vec4(a_position, 1.0);
+    v_color = vec4(1.0);
 }
