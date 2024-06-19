@@ -184,15 +184,22 @@ void worldMatrix() {
                         vec4{0.f, 1.f, 0.f, 0.f },
                         vec4{0.f, 0.f, 1.f, 0.f },
                         vec4{0.f, 0.f, -5.f, 1.f }
-};
+    };
 
     mat4 scale = { vec4{1.f, 0.f, 0.f, 0.f },
                     vec4{0.f, 1.f, 0.f, 0.f },
                     vec4{0.f, 0.f, 1.f, 0.f },
                     vec4{0.f, 0.f, 0.0f, 1.f }
-};
+    };
+
+    mat4 rotateZ = { vec4{cosf(2 * time), sinf(2 * time), 0.f, 0.f},
+                    vec4{-sinf(2 * time), cosf(2 * time), 0.f, 0.f},
+                    vec4{0.f, 0.f, 1.f, 0.f },
+                    vec4{0.f, 0.f, -5.f, 1.f }
+    };
 
     worldMatrix = translate * scale;
+    worldMatrix = worldMatrix * rotateZ;
 
     glUniformMatrix4fv(matriceWorldLocation, 1, false, (float*) &worldMatrix);
 }
@@ -312,7 +319,7 @@ void Render(int width, int height)
     glViewport(0, 0, width, height);
     
     LookAt({ 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, -1.0f }, { 0.0f, 1.0f, 0.0f });
-    projectionMatrix(640, 480, 500.0f, 0.1f);
+    projectionMatrix(width, height, 500.0f, 0.1f);
     worldMatrix();
 
     // etape b. Notez que glClearColor est un etat, donc persistant
