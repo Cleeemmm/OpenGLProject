@@ -8,8 +8,6 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "library/tinyobjloader-release/tiny_obj_loader.h"
 
-const int STEP = 5;
-
 GLShader g_BasicShader;
 GLuint VAO;
 GLuint VBO;
@@ -54,6 +52,10 @@ struct Camera {
 };
 
 Camera camera;
+vec3 camPosition;
+vec3 camTarget;
+vec3 camUp;
+const float camSTEP = 0.1f;
 
 struct Vertex {
     vec3 position;
@@ -120,14 +122,13 @@ float scalProduct(vec3 vector1, vec3 vector2) {
     return result;
 }
 
-/*
-void LookAt(vec3 position, vec3 target, vec3 up) {
+mat4 LookAt(vec3 position, vec3 target, vec3 up) {
     vec3 forward = { 0.0f, 0.0f, 0.0f };
 
     vec3 right = { 0.0f, 0.0f, 0.0f };
     vec3 upCorrected = { 0.0f, 0.0f, 0.0f };
 
-    forward = normalize({ position.x - target.x , position.y - target.y , position.z - target.z });
+    forward = normalize({ target.x - position.x , target.y - position.y , target.z - position.z });
     right = vectProduct(up, forward);
     upCorrected = vectProduct(forward, right);
 
@@ -139,9 +140,8 @@ void LookAt(vec3 position, vec3 target, vec3 up) {
                         vec4{scalResults.x, scalResults.y, scalResults.z, 1.0f }
     };
 
-    glUniformMatrix4fv(matriceViewLocation, 1, false, (float*)&matriceView);
+    return matriceView;
 }
-*/
 
 mat4 createProjectionMatrix(float width, float height, float far, float near) {
 
@@ -215,7 +215,6 @@ mat4 createWorldMatrix() {
     return worldMatrix;
 }
 
-
 bool Initialise()
 {
     //reading my object :
@@ -287,6 +286,10 @@ bool Initialise()
     
     sizeVertices = size * 3;
 
+    camPosition = { 0.f, 0.f, 0.f };
+    camTarget = { 0.f, 0.f, -5.f };
+    camUp = { 0.f, 1.f, 0.f };
+
     glGenBuffers(1, &IBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 
@@ -325,6 +328,10 @@ void Render(int width, int height)
     int matriceProjectionLocation = glGetUniformLocation(basicProgram, "v_projectionMatrix");
     glUniformMatrix4fv(matriceProjectionLocation, 1, false, (float*)&projectionMatrix);
 
+    mat4 viewMatrix = LookAt(camPosition, camTarget, camUp);
+    int matriceViewLocation = glGetUniformLocation(basicProgram, "v_viewMatrix");
+    glUniformMatrix4fv(matriceViewLocation, 1, false, (float*)&viewMatrix);
+
     glEnable(GL_CULL_FACE);
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, sizeVertices);
@@ -334,27 +341,33 @@ void Render(int width, int height)
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
         std::cout << "right" << std::endl;
-        camera.position.x += STEP;
+        camPosition.x += camSTEP;
+        camTarget.x += camSTEP;
     }
     if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
         std::cout << "left" << std::endl;
-        camera.position.y -= STEP;
+        camPosition.x -= camSTEP;
+        camTarget.x -= camSTEP;
     }
     if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
         std::cout << "down" << std::endl;
-        camera.position.y -= STEP;
+        camPosition.y -= camSTEP;
+        camTarget.y -= camSTEP;
     }
     if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
         std::cout << "up" << std::endl;
-        camera.position.y += STEP;
+        camPosition.y += camSTEP;
+        camTarget.y += camSTEP;
     }
     if (key == GLFW_KEY_W && action == GLFW_PRESS) {
         std::cout << "forward" << std::endl;
-        camera.position.z -= STEP;
+        camPosition.z += camSTEP;
+        camTarget.z += camSTEP;
     }
     if (key == GLFW_KEY_S && action == GLFW_PRESS) {
         std::cout << "backward" << std::endl;
-        camera.position.z += STEP;
+        camPosition.z -= camSTEP;
+        camTarget.z -= camSTEP;
     }
 }
 
