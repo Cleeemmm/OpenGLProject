@@ -22,6 +22,7 @@ GLuint VBOObject;
 GLuint texID;
 
 int matriceViewLocation;
+int matriceProjectionLocation;
 
 struct vec2 { float x, y; };
 struct vec3 { float x, y, z; };
@@ -316,6 +317,7 @@ bool Initialise()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     matriceViewLocation = glGetUniformLocation(basicProgram, "v_viewMatrix");
+    matriceProjectionLocation = glGetUniformLocation(basicProgram, "v_projectionMatrix");
 
     return true;
 }
@@ -333,10 +335,12 @@ void Render(int width, int height)
 {
     // etape a. A vous de recuperer/passer les variables width/height
     glViewport(0, 0, width, height);
-    LookAt({ 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 });
+    LookAt({ 0, 0, 10 }, { 0, 0, -1 }, { 0, 0, 0 });
     // etape b. Notez que glClearColor est un etat, donc persistant
     glClearColor(0.5f, 0.5f, 0.5f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT);
+
+
 
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, sizeVertices);
