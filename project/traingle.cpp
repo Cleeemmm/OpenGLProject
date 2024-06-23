@@ -123,7 +123,7 @@ struct Application {
         // cette fonction est spécifique à Windows et permet d’activer (1) ou non (0)
         // la synchronization vertical. Elle necessite l’include wglew.h
         #ifdef WIN32
-                wglSwapIntervalEXT(1);
+            glfwSwapInterval(1);
         #endif
         return true;
     }
