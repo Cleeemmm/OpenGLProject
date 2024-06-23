@@ -271,6 +271,7 @@ bool Initialise()
 
     auto basicProgram = g_BasicShader.GetProgram();
     glUseProgram(basicProgram);
+
     int position = glGetAttribLocation(basicProgram, "a_position");
 
     glGenVertexArrays(1, &VAO);
@@ -288,23 +289,23 @@ bool Initialise()
 
     // light
     GLfloat L[3] = {0, 1.0, -1.0};
-    const int u_L = glGetUniformLocation(g_BasicShader, "u_L");
+    const int u_L = glGetUniformLocation(basicProgram, "u_L");
     glUniform3fv(u_L, 1, L);
 
     GLfloat Id[3] = {1.0, 1.0, 1.0};
-    const int u_Id = glGetUniformLocation(g_BasicShader, "u_Id");
+    const int u_Id = glGetUniformLocation(basicProgram, "u_Id");
     glUniform3fv(u_Id, 1, Id);
 
     GLfloat Is[3] = {1.0, 1.0, 1.0};
-    const int u_Is = glGetUniformLocation(g_BasicShader, "u_Is");
+    const int u_Is = glGetUniformLocation(basicProgram, "u_Is");
     glUniform3fv(u_Is, 1, Is);
 
     GLfloat Ks[3] = {1.0, 0.0, 0.0};
-    const int u_Ks = glGetUniformLocation(g_BasicShader, "u_Ks");
+    const int u_Ks = glGetUniformLocation(basicProgram, "u_Ks");
     glUniform3fv(u_Ks, 1, Ks);
 
     GLfloat shininess = 100.0;
-    const int u_shininess = glGetUniformLocation(g_BasicShader, "u_shininess");
+    const int u_shininess = glGetUniformLocation(basicProgram, "u_shininess");
     glUniform1f(u_shininess, shininess);
     
     /*position = glGetAttribLocation(basicProgram, "a_texture");
@@ -312,11 +313,11 @@ bool Initialise()
     glVertexAttribPointer(position, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex) * 8, (void*)(sizeof(float) * 6));*/
 
     // texture
-    int texture_loc = glGetAttribLocation(g_BasicShader, "a_texcoords");
+    int texture_loc = glGetAttribLocation(basicProgram, "a_texcoords");
     glEnableVertexAttribArray(texture_loc);
     glVertexAttribPointer(texture_loc, 2, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, texture));
 
-    auto locationTexture = glGetUniformLocation(g_BasicShader, "u_sampler");
+    auto locationTexture = glGetUniformLocation(basicProgram, "u_sampler");
     glUniform1i(locationTexture, 1);
 
     glGenTextures(1, &texID);

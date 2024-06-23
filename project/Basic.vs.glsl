@@ -1,3 +1,5 @@
+#version 150
+
 attribute vec3 a_position;
 varying vec3 v_position;
 attribute vec3 a_color;
@@ -15,7 +17,7 @@ void main(void) {
 
     gl_Position = v_projectionMatrix * v_worldMatrix * vec4(a_position, 1.0);
     v_color = vec4( 1.0);
-    v_N = a_N;
+    v_normal = (transpose(inverse(v_worldMatrix)) * vec4(a_normal, 0.0)).xyz;
     v_texcoords = a_texcoords;
     v_position = a_position;
 }

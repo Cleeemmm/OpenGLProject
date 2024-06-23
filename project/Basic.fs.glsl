@@ -1,3 +1,5 @@
+#version 150
+
 varying vec4 v_color;
 varying vec2 v_texcoords;
 uniform sampler2D u_sampler;
@@ -32,6 +34,7 @@ vec4 specularBlinn(vec3 L, vec3 N, vec3 pos){
 }
 
 void main(void) {
+
     vec3 N = normalize(v_normal);
     vec3 L = normalize(-u_L);
     vec4 tex = texture2D(u_sampler, v_texcoords);
