@@ -375,6 +375,10 @@ void Render(int width, int height)
     int matriceViewLocation = glGetUniformLocation(basicProgram, "v_viewMatrix");
     glUniformMatrix4fv(matriceViewLocation, 1, false, (float*)&viewMatrix);
 
+    GLfloat E[3] = {camPosition.x, camPosition.y, camPosition.z};
+    int coordCam = glGetUniformLocation(basicProgram, "u_camera");
+    glUniform3fv(coordCam, 1, E);
+
     glEnable(GL_CULL_FACE);
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, sizeVertices);

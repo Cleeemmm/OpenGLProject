@@ -10,6 +10,7 @@ uniform vec3 u_Id;
 uniform vec3 u_Is;
 uniform vec3 u_Ks;
 uniform float u_shininess;
+uniform vec3 u_camera;
 
 
 vec3 diffuse(vec3 N, vec3 L, vec3 tex){
@@ -27,7 +28,7 @@ vec4 specular(vec3 L, vec3 N, vec3 pos){
 
 vec4 specularBlinn(vec3 L, vec3 N, vec3 pos){
 
-    vec3 V = normalize(vec3(0.0,0.0,2.0)-pos);
+    vec3 V = normalize(u_camera-pos);
     vec3 H = normalize(L+V);
     float RdotV =  pow(max(0.0,dot(H,N)),u_shininess);
     return RdotV * vec4(u_Is,1.0) * vec4(u_Ks,1.0);
