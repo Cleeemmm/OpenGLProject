@@ -277,7 +277,7 @@ bool Initialise()
     sizeVertices = size * 3;
 
 
-    int loc_position = glGetAttribLocation(basicProgram, "a_position");
+    int loc_position = glGetAttribLocation(g_BasicShader, "a_position");
     glEnableVertexAttribArray(loc_position);
     glVertexAttribPointer(loc_position, 3, GL_FLOAT, false, sizeof(Vertex), 0);
 
@@ -287,38 +287,38 @@ bool Initialise()
 
 
     // light
-    int normal = glGetAttribLocation(basicProgram, "a_N");
+    int normal = glGetAttribLocation(g_BasicShader, "a_N");
     glEnableVertexAttribArray(normal);
     glVertexAttribPointer(normal, 3, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, normal));
 
     GLfloat L[3] = {0, 1.0, -1.0};
-    const int u_L = glGetUniformLocation(basicProgram, "u_L");
+    const int u_L = glGetUniformLocation(g_BasicShader, "u_L");
     glUniform3fv(u_L, 1, L);
 
     GLfloat Id[3] = {1.0, 1.0, 1.0};
-    const int u_Id = glGetUniformLocation(basicProgram, "u_Id");
+    const int u_Id = glGetUniformLocation(g_BasicShader, "u_Id");
     glUniform3fv(u_Id, 1, Id);
 
     GLfloat Is[3] = {1.0, 1.0, 1.0};
-    const int u_Is = glGetUniformLocation(basicProgram, "u_Is");
+    const int u_Is = glGetUniformLocation(g_BasicShader, "u_Is");
     glUniform3fv(u_Is, 1, Is);
 
     GLfloat Ks[3] = {1.0, 0.0, 0.0};
-    const int u_Ks = glGetUniformLocation(basicProgram, "u_Ks");
+    const int u_Ks = glGetUniformLocation(g_BasicShader, "u_Ks");
     glUniform3fv(u_Ks, 1, Ks);
 
     GLfloat shininess = 100.0;
-    const int u_shininess = glGetUniformLocation(basicProgram, "u_shininess");
+    const int u_shininess = glGetUniformLocation(g_BasicShader, "u_shininess");
     glUniform1f(u_shininess, shininess);
 
 
 
     // texture
-    int texture_loc = glGetAttribLocation(basicProgram, "a_texcoords");
+    int texture_loc = glGetAttribLocation(g_BasicShader, "a_texcoords");
     glEnableVertexAttribArray(texture_loc);
     glVertexAttribPointer(texture_loc, 2, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, texture));
 
-    auto locationTexture = glGetUniformLocation(basicProgram, "u_sampler");
+    auto locationTexture = glGetUniformLocation(g_BasicShader, "u_sampler");
     glUniform1i(locationTexture, 1);
 
     glGenTextures(1, &texID);
@@ -358,14 +358,14 @@ void Terminate() {
 void Render(int width, int height)
 {
 
-    auto basicProgram = g_BasicShader.GetProgram();
-    glUseProgram(basicProgram);
+    /*auto g_BasicShader = g_BasicShader.GetProgram();
+    glUseProgram(g_BasicShader);*/
 
     // etape a. A vous de recuperer/passer les variables width/height
     glViewport(0, 0, width, height);
 
 
-    matriceProjectionLocation = glGetUniformLocation(basicProgram, "v_projectionMatrix");
+    matriceProjectionLocation = glGetUniformLocation(g_BasicShader, "v_projectionMatrix");
     mat4 matriceProjection = projectionMatrix(width, height, 500.0f, 0.1f);
     glUniformMatrix4fv(matriceProjectionLocation, 1, false, (float*)&matriceProjection);
 

@@ -8,12 +8,16 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "library/tinyobjloader-release/tiny_obj_loader.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb-master/stb_image.h"
+
 const int STEP = 5;
 
 GLShader g_BasicShader;
 GLuint VAO;
 GLuint VBO;
 GLuint IBO;
+GLuint texID;
 
 const int width = 640;
 const int height = 480;
@@ -260,8 +264,8 @@ bool Initialise()
         }
     }
 
-    g_BasicShader.LoadVertexShader("Basic.vs");
-    g_BasicShader.LoadFragmentShader("Basic.fs");
+    g_BasicShader.LoadVertexShader("Basic.vs.glsl");
+    g_BasicShader.LoadFragmentShader("Basic.fs.glsl");
     g_BasicShader.Create();
 
 
@@ -280,10 +284,52 @@ bool Initialise()
     position = glGetAttribLocation(basicProgram, "a_normal");
     glEnableVertexAttribArray(position);
     glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(float) * 3));
+
+
+    // light
+    GLfloat L[3] = {0, 1.0, -1.0};
+    const int u_L = glGetUniformLocation(g_BasicShader, "u_L");
+    glUniform3fv(u_L, 1, L);
+
+    GLfloat Id[3] = {1.0, 1.0, 1.0};
+    const int u_Id = glGetUniformLocation(g_BasicShader, "u_Id");
+    glUniform3fv(u_Id, 1, Id);
+
+    GLfloat Is[3] = {1.0, 1.0, 1.0};
+    const int u_Is = glGetUniformLocation(g_BasicShader, "u_Is");
+    glUniform3fv(u_Is, 1, Is);
+
+    GLfloat Ks[3] = {1.0, 0.0, 0.0};
+    const int u_Ks = glGetUniformLocation(g_BasicShader, "u_Ks");
+    glUniform3fv(u_Ks, 1, Ks);
+
+    GLfloat shininess = 100.0;
+    const int u_shininess = glGetUniformLocation(g_BasicShader, "u_shininess");
+    glUniform1f(u_shininess, shininess);
     
-    position = glGetAttribLocation(basicProgram, "a_texture");
+    /*position = glGetAttribLocation(basicProgram, "a_texture");
     glEnableVertexAttribArray(position);
-    glVertexAttribPointer(position, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex) * 8, (void*)(sizeof(float) * 6));
+    glVertexAttribPointer(position, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex) * 8, (void*)(sizeof(float) * 6));*/
+
+    // texture
+    int texture_loc = glGetAttribLocation(g_BasicShader, "a_texcoords");
+    glEnableVertexAttribArray(texture_loc);
+    glVertexAttribPointer(texture_loc, 2, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, texture));
+
+    auto locationTexture = glGetUniformLocation(g_BasicShader, "u_sampler");
+    glUniform1i(locationTexture, 1);
+
+    glGenTextures(1, &texID);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texID);
+
+    int w, h;
+    uint8_t *data = stbi_load("./stb-master/data/map_01.png", &w, &h, nullptr, STBI_rgb_alpha);
+    if (data) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        stbi_image_free(data);
+    }
     
     sizeVertices = size * 3;
 

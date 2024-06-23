@@ -3,7 +3,7 @@ varying vec2 v_texcoords;
 uniform sampler2D u_sampler;
 varying vec3 v_position;
 uniform vec3 u_L;
-varying vec3 v_N;
+varying vec3 v_normal;
 uniform vec3 u_Id;
 uniform vec3 u_Is;
 uniform vec3 u_Ks;
@@ -32,7 +32,7 @@ vec4 specularBlinn(vec3 L, vec3 N, vec3 pos){
 }
 
 void main(void) {
-    vec3 N = normalize(v_N);
+    vec3 N = normalize(v_normal);
     vec3 L = normalize(-u_L);
     vec4 tex = texture2D(u_sampler, v_texcoords);
     //gl_FragColor = vec4(diffuse(N,L,tex.xyz),1.0) + specular(-L,N,v_position);
