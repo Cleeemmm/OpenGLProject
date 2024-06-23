@@ -389,33 +389,33 @@ void Render(int width, int height)
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
         std::cout << "right" << std::endl;
-        camPosition.x += camSTEP;
-        camTarget.x += camSTEP;
-    }
-    if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
-        std::cout << "left" << std::endl;
         camPosition.x -= camSTEP;
         camTarget.x -= camSTEP;
     }
+    if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
+        std::cout << "left" << std::endl;
+        camPosition.x += camSTEP;
+        camTarget.x += camSTEP;
+    }
     if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
         std::cout << "down" << std::endl;
-        camPosition.y -= camSTEP;
-        camTarget.y -= camSTEP;
-    }
-    if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
-        std::cout << "up" << std::endl;
         camPosition.y += camSTEP;
         camTarget.y += camSTEP;
     }
+    if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
+        std::cout << "up" << std::endl;
+        camPosition.y -= camSTEP;
+        camTarget.y -= camSTEP;
+    }
     if (key == GLFW_KEY_W && action == GLFW_PRESS) {
         std::cout << "forward" << std::endl;
-        camPosition.z += camSTEP;
-        camTarget.z += camSTEP;
+        camPosition.z -= camSTEP;
+        camTarget.z -= camSTEP;
     }
     if (key == GLFW_KEY_S && action == GLFW_PRESS) {
         std::cout << "backward" << std::endl;
-        camPosition.z -= camSTEP;
-        camTarget.z -= camSTEP;
+        camPosition.z += camSTEP;
+        camTarget.z += camSTEP;
     }
 
 }
