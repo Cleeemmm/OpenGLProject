@@ -288,7 +288,7 @@ bool Initialise()
 
 
     // light
-    GLfloat L[3] = {0, 0, -1.0};
+    GLfloat L[3] = {0, -1.0f, -1.0};
     const int u_L = glGetUniformLocation(basicProgram, "u_L");
     glUniform3fv(u_L, 1, L);
 
