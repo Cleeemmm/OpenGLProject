@@ -15,7 +15,7 @@ uniform mat4 v_worldMatrix;
 
 void main(void) {
 
-    gl_Position = v_projectionMatrix * v_worldMatrix * vec4(a_position, 1.0);
+    gl_Position = v_projectionMatrix * v_viewMatrix * v_worldMatrix * vec4(a_position, 1.0);
     v_color = vec4( 1.0);
     v_normal = (transpose(inverse(v_worldMatrix)) * vec4(a_normal, 0.0)).xyz;
     v_texcoords = a_texcoords;

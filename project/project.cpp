@@ -133,17 +133,18 @@ mat4 LookAt(vec3 position, vec3 target, vec3 up) {
     vec3 right = { 0.0f, 0.0f, 0.0f };
     vec3 upCorrected = { 0.0f, 0.0f, 0.0f };
 
-    forward = normalize({ target.x - position.x , target.y - position.y , target.z - position.z });
+    forward = normalize({ -(target.x - position.x) ,-( target.y - position.y) , -(target.z - position.z) });
     right = vectProduct(up, forward);
     upCorrected = vectProduct(forward, right);
 
     vec3 scalResults = { -scalProduct(position, right), -scalProduct(position, upCorrected), -scalProduct(position, forward) };
 
-    mat4 matriceView = { vec4{right.x, upCorrected.x, -forward.x, 0.0f} ,
-                        vec4{right.y, upCorrected.y, -forward.y, 0.0f},
-                        vec4{right.z, upCorrected.z, -forward.z, 0.0f },
+    mat4 matriceView = { vec4{right.x, upCorrected.x, forward.x, 0.0f} ,
+                        vec4{right.y, upCorrected.y, forward.y, 0.0f},
+                        vec4{right.z, upCorrected.z, forward.z, 0.0f },
                         vec4{scalResults.x, scalResults.y, scalResults.z, 1.0f }
     };
+
 
     return matriceView;
 }
@@ -287,7 +288,7 @@ bool Initialise()
 
 
     // light
-    GLfloat L[3] = {0, 1.0, -1.0};
+    GLfloat L[3] = {0, 0, -1.0};
     const int u_L = glGetUniformLocation(basicProgram, "u_L");
     glUniform3fv(u_L, 1, L);
 
@@ -416,6 +417,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         camPosition.z -= camSTEP;
         camTarget.z -= camSTEP;
     }
+
 }
 
 

@@ -28,6 +28,10 @@ vec4 specular(vec3 L, vec3 N, vec3 pos){
 
 vec4 specularBlinn(vec3 L, vec3 N, vec3 pos){
 
+
+    if (dot(N, L) <= 0.0) {
+        return vec4(0.0);
+    }
     vec3 V = normalize(u_camera-pos);
     vec3 H = normalize(L+V);
     float RdotV =  pow(max(0.0,dot(H,N)),u_shininess);
